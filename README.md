@@ -55,7 +55,12 @@ pip install -r requirements.txt
 - Alternatively, download CIFAR-100 manually and place it in the appropriate directory. Update the dataset path in the configuration file if necessary.
 
 ### 4. Run the Code
-**Fine-Tune Classifier:**
+**Fine-Tune Classifier (Optional):**
 ```bash
-python ipsum
+python training.py
+```
+
+**Conformal Prediction:**
+```bash
+sh main.sh
 ```
