@@ -84,9 +84,6 @@ for sf in args.score_func:
             filtered_scores, filtered_labels, q=[0.5, 0.6, 0.7, 0.8, 0.9], return_cts=True
         )
 
-        pca = PCA(n_components=2)
-        pca_embeddings = pca.fit_transform(embeddings)
-
         if args.clustering_method == 'kmeans':
             model = KMeans(n_clusters=int(num_clusters), random_state=0, n_init=10)
             nonrare_class_cluster_assignments = model.fit(embeddings, sample_weight=np.sqrt(class_cts)).labels_
