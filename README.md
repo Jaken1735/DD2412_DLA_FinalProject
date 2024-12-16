@@ -50,8 +50,8 @@ pip install -r requirements.txt
 
 ### 3. Download Dataset
 
-- The project uses the CIFAR-100 dataset, which will be automatically downloaded via PyTorch when running the code.
-- Alternatively, download CIFAR-100 manually and place it in the appropriate directory. Update the dataset path in the configuration file if necessary.
+- The project uses the CIFAR-100 dataset, which will be automatically downloaded via PyTorch when running training.py.
+- Alternatively, you can use pre-saved data included in the repository.
 
 ### 4. Run the Code
 **Fine-Tune Classifier (Optional):**
@@ -63,3 +63,6 @@ python training.py
 ```bash
 sh main.sh
 ```
+
+**Inspecting the Results:**
+The results will be outputted in a `.csv` file. The file will include metrics such as **CovGap** and **AvgSize** for the specified method and data regime.
