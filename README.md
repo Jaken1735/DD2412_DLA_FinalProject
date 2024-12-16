@@ -29,8 +29,7 @@ This project is a part of the course DD2412 Deep Learning, Advanced Course at KT
 ## Results and Findings
 
 1. **Reproduction Results**:
-   - Successfully replicated the results for standard and classwise CP.
-   - Small deviations were observed in CCP results.
+   - Successfully replicated the results for standard, classwise, and clustered CP.
    - Performance consistency across data regimes differed, with clustering methods impacting results only in high-data regimes.
 
 2. **Extended Findings**:
