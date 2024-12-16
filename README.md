@@ -57,5 +57,10 @@ pip install -r requirements.txt
 ### 4. Run the Code
 **Fine-Tune Classifier:**
 ```bash
-python ipsum
+python training.py
+```
+
+**Conformal Prediction:**
+```bash
+sh main.sh
 ```
