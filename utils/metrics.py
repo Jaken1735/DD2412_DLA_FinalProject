@@ -1,26 +1,14 @@
 import numpy as np
+import jax.numpy as jnp
 
-def compute_class_specific_coverage(true_labels, set_preds):
-    num_classes = max(true_labels) + 1
-    class_specific_cov = np.zeros((num_classes,))
-    for k in range(num_classes):
-        idx = np.where(true_labels == k)[0]
-        selected_preds = [set_preds[i] for i in idx]
-        num_correct = np.sum([1 if np.any(pred_set == k) else 0 for pred_set in selected_preds])
-        class_specific_cov[k] = num_correct / len(selected_preds)
-        
-    return class_specific_cov
-
-def compute_coverage(true_labels, set_preds):
-    true_labels = np.array(true_labels) # Convert to numpy to avoid weird pytorch tensor issues
-    num_correct = 0
-    for true_label, preds in zip(true_labels, set_preds):
-        if true_label in preds:
-            num_correct += 1
-    set_pred_acc = num_correct / len(true_labels)
-    
-    return set_pred_acc
-
+def computeClassCoverage(actual_labels, predicted_sets):
+    total_classes = max(actual_labels) + 1
+    coverage_per_class = np.zeros(total_classes)
+    for class_label in range(total_classes):
+        class_indices = np.where(actual_labels == class_label)[0]
+        class_predicted_sets = (predicted_sets[i] for i in class_indices)
+        coverage_per_class[class_label] = sum(1 for prediction_set in class_predicted_sets if class_label in prediction_set) / len(class_indices)
+    return coverage_per_class
 
 def compute_coverage_metrics(true_labels, prediction_sets, alpha):
 
@@ -33,17 +21,10 @@ def compute_coverage_metrics(true_labels, prediction_sets, alpha):
     # Compute overall coverage
     coverage = np.mean(hits)
 
-    # Compute miscoverage
-    miscoverage = 1 - coverage
-
     # Prepare results
     coverage_results = {
         'coverage': coverage,
         'covGap': coverage - (1 - alpha),
-        'miscoverage': miscoverage,
-        'expected_coverage': 1 - alpha,
-        'expected_miscoverage': alpha,
-        'num_samples': num_samples
     }
 
     return coverage_results
@@ -55,9 +36,6 @@ def compute_set_size_metrics(prediction_sets):
 
     size_metrics = {
         'mean_size': np.mean(set_sizes),
-        'median_size': np.median(set_sizes),
-        'max_size': np.max(set_sizes),
-        'min_size': np.min(set_sizes),
         'std_size': np.std(set_sizes),
     }
 
@@ -65,7 +43,7 @@ def compute_set_size_metrics(prediction_sets):
 
 
 def compute_all_metrics(val_labels, preds, alpha, cluster_assignments=None):
-    class_cond_cov = compute_class_specific_coverage(val_labels, preds)
+    class_cond_cov = computeClassCoverage(val_labels, preds)
         
     # Average class coverage gap
     avg_class_cov_gap = np.mean(np.abs(class_cond_cov - (1-alpha)))
@@ -73,33 +51,8 @@ def compute_all_metrics(val_labels, preds, alpha, cluster_assignments=None):
     # Average class coverage gap error
     avg_class_cov_gap_std = np.std(np.abs(class_cond_cov - (1-alpha)))
 
-    # Average gap for classes that are over-covered
-    overcov_idx = (class_cond_cov > (1-alpha))
-    overcov_gap = np.mean(class_cond_cov[overcov_idx] - (1-alpha))
-
-    # Average gap for classes that are under-covered
-    undercov_idx = (class_cond_cov < (1-alpha))
-    undercov_gap = np.mean(np.abs(class_cond_cov[undercov_idx] - (1-alpha)))
-    
-    # Fraction of classes that are at least 10% under-covered
-    thresh = .1
-    very_undercovered = np.mean(class_cond_cov < (1-alpha-thresh))
-    
-    # Max gap
-    max_gap = np.max(np.abs(class_cond_cov - (1-alpha)))
-
-    # Marginal coverage
-    marginal_cov = compute_coverage(val_labels, preds)
-
     class_cov_metrics = {'mean_class_cov_gap': avg_class_cov_gap, 
                          'cov_gap_std': avg_class_cov_gap_std,
-                         'undercov_gap': undercov_gap, 
-                         'overcov_gap': overcov_gap, 
-                         'max_gap': max_gap,
-                         'very_undercovered': very_undercovered,
-                         'marginal_cov': marginal_cov,
-                         'raw_class_coverages': class_cond_cov,
-                         'cluster_assignments': cluster_assignments # Also save class cluster assignments
                         }
 
     curr_set_sizes = [len(x) for x in preds]
@@ -109,3 +62,47 @@ def compute_all_metrics(val_labels, preds, alpha, cluster_assignments=None):
                         }
     
     return class_cov_metrics, set_size_metrics
+
+
+def computeAPS_scores(softmax_scores):
+    # Step 1: Sort the softmax scores in descending order for each sample
+    sorted_indices = jnp.argsort(-softmax_scores, axis=1)
+    sorted_softmax = jnp.take_along_axis(softmax_scores, sorted_indices, axis=1)
+
+    # Step 2: Compute cumulative sums of the sorted softmax scores
+    cumulative_probs = jnp.cumsum(sorted_softmax, axis=1)
+
+    # Step 3: Map the cumulative sums back to the original class order
+    inv_sorted_indices = jnp.argsort(sorted_indices, axis=1)
+    cumulative_probs_original = jnp.take_along_axis(cumulative_probs, inv_sorted_indices, axis=1)
+
+    # Step 4: Compute the APS conformity scores for all classes
+    aps_scores = cumulative_probs_original - softmax_scores
+
+    return aps_scores
+
+def computeRAPS_scores(softmax_scores, lambda_param, k_reg):
+    # Step 1: Sort the softmax scores in descending order for each sample
+    sorted_indices = jnp.argsort(-softmax_scores, axis=1)
+    sorted_softmax = jnp.take_along_axis(softmax_scores, sorted_indices, axis=1)
+
+    # Step 2: Compute cumulative sums of the sorted softmax scores
+    cumulative_probs = jnp.cumsum(sorted_softmax, axis=1)
+
+    # Step 3: Map the cumulative sums back to the original class order
+    inv_sorted_indices = jnp.argsort(sorted_indices, axis=1)
+    cumulative_probs_original = jnp.take_along_axis(cumulative_probs, inv_sorted_indices, axis=1)
+
+    # Step 4: Compute the rank of each class (1-based rank)
+    ranks = inv_sorted_indices + 1  # Ranks start from 1
+
+    # Step 5: Compute the regularization term
+    reg_term = jnp.maximum(lambda_param * (ranks - k_reg), 0)
+
+    # Step 6: Add the regularization term to the cumulative probabilities
+    scores = cumulative_probs_original + reg_term
+
+    # Step 7: Compute RAPS scores
+    raps_scores = scores - softmax_scores
+
+    return raps_scores

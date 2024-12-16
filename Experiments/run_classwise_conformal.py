@@ -12,9 +12,9 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if project_root not in sys.path:
     sys.path.append(project_root)
 
-from utils.misc import random_split, compute_APS_scores, get_RAPS_scores_all, load_cifar100_data
+from utils.misc import random_split, load_cifar100_data
 from conformal.classwise_conformal import run_classwise
-from utils.metrics import compute_all_metrics
+from utils.metrics import compute_all_metrics, computeAPS_scores, computeRAPS_scores
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--N_AVG', type=int, default=10, help='Average number per class for calibration')
@@ -38,9 +38,9 @@ for sf in args.score_func:
     if sf == 'softmax':
         conformal_scores_all = 1 - softmax_scores
     elif sf == 'APS':
-        conformal_scores_all = compute_APS_scores(softmax_scores)
+        conformal_scores_all = computeAPS_scores(softmax_scores)
     elif sf == 'RAPS':
-        conformal_scores_all = get_RAPS_scores_all(softmax_scores, lmbda, kreg)
+        conformal_scores_all = computeRAPS_scores(softmax_scores, lmbda, kreg)
     else:
         raise ValueError(f"Unknown scoring function: {sf}")
     
