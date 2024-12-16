@@ -33,7 +33,6 @@ This project is a part of the course DD2412 Deep Learning, Advanced Course at KT
 
 2. **Extended Findings**:
    - GMM and AC clustering methods were explored as alternatives to K-Means.
-   - No significant impact was observed in low-data regimes, but clear differences emerged with increasing calibration samples.
 
 ## How to Run
 ### 1. Clone the Repository
