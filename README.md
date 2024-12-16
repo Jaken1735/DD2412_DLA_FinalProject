@@ -30,7 +30,6 @@ This project is a part of the course DD2412 Deep Learning, Advanced Course at KT
 
 1. **Reproduction Results**:
    - Successfully replicated the results for standard, classwise, and clustered CP.
-   - Performance consistency across data regimes differed, with clustering methods impacting results only in high-data regimes.
 
 2. **Extended Findings**:
    - GMM and AC clustering methods were explored as alternatives to K-Means.
