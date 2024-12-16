@@ -40,8 +40,7 @@ This project is a part of the course DD2412 Deep Learning, Advanced Course at KT
 ## How to Run
 ### 1. Clone the Repository
 ```bash
-git clone <repository-url>
-cd <repository-folder>
+git clone <https://github.com/Jaken1735/DD2412_DLA_FinalProject>
 ```
 
 ### 2. Install Dependencies
