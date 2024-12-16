@@ -3,7 +3,6 @@ if [ ! -f "$OUTFILE" ]; then
     echo "method,score_func,N_AVG,covGap,covGapStd,mean_size,std_size" > "$OUTFILE"
 fi
 
-#METHODS="standard classwise clustered"
 METHODS="clustered"
 N_AVG_VALUES="10 20 30 40 50 75 100 150"
 SCORE_FUNCS="softmax APS RAPS"
